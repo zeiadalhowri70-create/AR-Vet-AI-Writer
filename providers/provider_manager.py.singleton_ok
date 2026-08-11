@@ -1,0 +1,105 @@
+# -*- coding: utf-8 -*-
+
+import os
+import config
+from providers.provider_factory import ProviderFactory
+
+
+class ProviderManager:
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(ProviderManager, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self, provider_name=None):
+
+        if not provider_name:
+            provider_name = getattr(config, "ACTIVE_PROVIDER", None)
+
+        if not provider_name:
+            if os.getenv("OPENROUTER_API_KEY"):
+                provider_name = "openrouter"
+            elif os.getenv("GROQ_API_KEY"):
+                provider_name = "groq"
+            elif os.getenv("GEMINI_API_KEY"):
+                provider_name = "gemini"
+            else:
+                provider_name = "mock"
+
+        self.provider_name = provider_name
+        self.provider = ProviderFactory.create(provider_name)
+
+
+    def get_provider(self):
+        return self.provider
+
+
+    def set_provider(self, provider_name):
+        self.provider_name = provider_name
+        self.provider = ProviderFactory.create(provider_name)
+
+
+    def generate(self, prompt):
+
+        providers = [self.provider_name]
+
+        # استخدام fallback واحد فقط عند الفشل
+        if self.provider_name != "mock":
+            providers.append("mock")
+
+        for name in providers:
+
+            try:
+                provider = ProviderFactory.create(name)
+
+                result = provider.generate(prompt)
+
+                if isinstance(result, dict):
+
+                    if result.get("success"):
+                        return result.get("content", "")
+
+                    error = str(
+                        result.get("content", "")
+                    )
+
+                    print(
+                        f"⚠️ Provider failed: {name} -> {error[:200]}"
+                    )
+
+                    # لا نكرر الطلب عند تجاوز الحد
+                    if "429" in error or "rate" in error.lower():
+                        break
+
+                elif result:
+                    return result
+
+            except Exception as e:
+
+                print(
+                    f"⚠️ Provider exception {name}: {e}"
+                )
+
+        return (
+            "تعذر إنشاء المحتوى حالياً. "
+            "سيتم استخدام المحتوى المحلي أو المحاولة لاحقاً."
+        )
+
+    def health(self):
+        return self.provider.health()
+
+
+    def info(self):
+
+        return {
+            "manager": "Stable Provider Manager",
+            "active_provider_name":
+                self.provider.__class__.__name__,
+            "provider_details":
+                self.provider.info()
+                if hasattr(self.provider,"info")
+                else {}
+        }

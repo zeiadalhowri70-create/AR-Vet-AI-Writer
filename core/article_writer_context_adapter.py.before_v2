@@ -1,0 +1,90 @@
+# -*- coding: utf-8 -*-
+
+"""
+AR-Vet AI Writer
+
+Article Writer Context Adapter
+
+Converts veterinary knowledge into AI writing context.
+"""
+
+
+class ArticleWriterContextAdapter:
+
+
+    VERSION = "1.0.0"
+
+
+
+    def build(self, knowledge):
+
+        if not knowledge:
+
+            return ""
+
+
+
+        profile = knowledge.get(
+            "scientific_profile",
+            {}
+        )
+
+
+        basic = knowledge.get(
+            "basic",
+            {}
+        )
+
+
+        context = f"""
+
+معلومات علمية من قاعدة بيانات AR-Vet:
+
+اسم المرض:
+{basic.get("name_ar","")}
+
+المسبب المرضي:
+{profile.get("pathogen",{}).get("name","")}
+
+الجينوم:
+{profile.get("pathogen",{}).get("genome","")}
+
+
+العلامات السريرية:
+{", ".join(profile.get("clinical_signs",[]))}
+
+
+التشخيص:
+{profile.get("diagnosis",{})}
+
+
+الوقاية:
+{profile.get("prevention",{})}
+
+
+المراجع:
+{", ".join(knowledge.get("references",[]))}
+
+
+استخدم هذه المعلومات كأساس علمي.
+لا تخترع معلومات مخالفة لها.
+"""
+
+
+        return context
+
+
+
+    def health(self):
+
+        return {
+
+            "status": True,
+
+            "engine":
+            "Article Writer Context Adapter",
+
+            "version":
+            self.VERSION
+
+        }

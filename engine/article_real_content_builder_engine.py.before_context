@@ -1,0 +1,141 @@
+# -*- coding: utf-8 -*-
+
+from engine.introduction_writer_engine import IntroductionWriterEngine
+from engine.definition_writer_engine import DefinitionWriterEngine
+from engine.cause_writer_engine import CauseWriterEngine
+from engine.symptoms_writer_engine import SymptomsWriterEngine
+from engine.diagnosis_writer_engine import DiagnosisWriterEngine
+from engine.treatment_writer_engine import TreatmentWriterEngine
+from engine.prevention_writer_engine import PreventionWriterEngine
+from engine.control_writer_engine import ControlWriterEngine
+from engine.conclusion_writer_engine import ConclusionWriterEngine
+from engine.content_quality_engine import ContentQualityEngine
+from engine.reference_writer_engine import ReferenceWriterEngine
+from engine.article_citation_writer_engine import ArticleCitationWriterEngine
+
+
+class ArticleRealContentBuilderEngine:
+
+    def __init__(self):
+
+        self.introduction = IntroductionWriterEngine()
+        self.definition = DefinitionWriterEngine()
+        self.causes = CauseWriterEngine()
+        self.symptoms = SymptomsWriterEngine()
+        self.diagnosis = DiagnosisWriterEngine()
+        self.treatment = TreatmentWriterEngine()
+        self.prevention = PreventionWriterEngine()
+        self.control = ControlWriterEngine()
+        self.conclusion = ConclusionWriterEngine()
+
+        self.references = ReferenceWriterEngine()
+        self.citations = ArticleCitationWriterEngine()
+
+        self.quality = ContentQualityEngine()
+
+
+    def _extract_content(self, result):
+
+        if isinstance(result, dict):
+            return result.get("content", "")
+
+        return result
+
+
+    def build_faq(self, topic):
+
+        return [
+            {
+                "question": f"ما هو {topic}؟",
+                "answer": f"{topic} هو مرض يحتاج إلى تشخيص دقيق وإدارة مناسبة."
+            },
+            {
+                "question": f"كيف يتم الوقاية من {topic}؟",
+                "answer": "تعتمد الوقاية على الأمن الحيوي والتحصينات والمتابعة المستمرة."
+            }
+        ]
+
+
+    def build(self, topic):
+
+        introduction = self._extract_content(self.introduction.write(topic))
+        definition = self._extract_content(self.definition.write(topic))
+        causes = self._extract_content(self.causes.write(topic))
+        symptoms = self._extract_content(self.symptoms.write(topic))
+        diagnosis = self._extract_content(self.diagnosis.write(topic))
+        treatment = self._extract_content(self.treatment.write(topic))
+        prevention = self._extract_content(self.prevention.write(topic))
+        control = self._extract_content(self.control.write(topic))
+        conclusion = self._extract_content(self.conclusion.write(topic))
+
+        references = self._extract_content(self.references.write(topic))
+        citations = self._extract_content(self.citations.write(topic))
+
+        faq = self.build_faq(topic)
+
+
+        sections = [
+            {"title": "المقدمة", "content": introduction},
+            {"title": "التعريف", "content": definition},
+            {"title": "الأسباب", "content": causes},
+            {"title": "الأعراض", "content": symptoms},
+            {"title": "التشخيص", "content": diagnosis},
+            {"title": "العلاج", "content": treatment},
+            {"title": "الوقاية", "content": prevention},
+            {"title": "المكافحة", "content": control},
+            {"title": "الخاتمة", "content": conclusion},
+        ]
+
+
+        return {
+
+            "title": topic,
+
+            "sections": [
+                {"title": "المقدمة", "content": introduction},
+                {"title": "التعريف", "content": definition},
+                {"title": "الأسباب", "content": causes},
+                {"title": "الأعراض", "content": symptoms},
+                {"title": "التشخيص", "content": diagnosis},
+                {"title": "العلاج", "content": treatment},
+                {"title": "الوقاية", "content": prevention},
+                {"title": "المكافحة", "content": control},
+                {"title": "الخاتمة", "content": conclusion},
+            ],
+
+
+
+            "introduction": introduction,
+            "definition": definition,
+            "causes": causes,
+            "symptoms": symptoms,
+            "diagnosis": diagnosis,
+            "treatment": treatment,
+            "prevention": prevention,
+            "control": control,
+            "conclusion": conclusion,
+
+            "references": references,
+            "citations": citations,
+
+            "faq": faq,
+
+            "quality": {
+                s["title"]: self.quality.review(s["content"])
+                for s in sections
+            }
+        }
+
+
+    def info(self):
+
+        return {
+            "engine": "Article Real Content Builder Engine",
+            "version": "5.1",
+            "status": "production",
+            "sections": 9,
+            "faq": True,
+            "quality_engine": True,
+            "references": True,
+            "citations": True
+        }

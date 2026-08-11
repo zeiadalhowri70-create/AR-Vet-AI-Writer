@@ -1,0 +1,76 @@
+# -*- coding: utf-8 -*-
+
+from engine.article_real_content_builder_engine import ArticleRealContentBuilderEngine
+from engine.article_quality_enhancement_engine import ArticleQualityEnhancementEngine
+from engine.article_validation_engine import ArticleValidationEngine
+from engine.article_metadata_engine import ArticleMetadataEngine
+from engine.article_seo_enhancement_engine import ArticleSEOEnhancementEngine
+from engine.article_statistics_engine import ArticleStatisticsEngine
+from engine.article_content_assembly_engine import ArticleContentAssemblyEngine
+from engine.faq_engine import FAQEngine
+
+
+class ArticleWriterIntegrationEngine:
+    """
+    يربط جميع مراحل إنتاج المقال.
+    """
+
+    def __init__(self):
+        self.builder = ArticleRealContentBuilderEngine()
+        self.quality = ArticleQualityEnhancementEngine()
+        self.validator = ArticleValidationEngine()
+        self.metadata = ArticleMetadataEngine()
+        self.seo = ArticleSEOEnhancementEngine()
+        self.statistics = ArticleStatisticsEngine()
+        self.assembler = ArticleContentAssemblyEngine()
+        self.faq = FAQEngine()
+
+    def generate(self, topic):
+
+        article = self.builder.build(topic)
+
+        article = self.quality.enhance(article)
+
+        validation = self.validator.validate(article)
+
+        if not validation["valid"]:
+            raise ValueError(
+                "Article validation failed: " +
+                ", ".join(validation["errors"])
+            )
+
+        assembled = self.assembler.assemble(article)
+
+        metadata = self.metadata.generate(article)
+
+        assembled["metadata"] = metadata
+        assembled["seo"] = self.seo.enhance(metadata)
+        assembled["statistics"] = self.statistics.generate(article)
+
+        if article.get("faq"):
+            assembled["faq_html"] = self.faq.build_html(article["faq"])
+            assembled["faq_schema"] = self.faq.schema_script(article["faq"])
+        else:
+            assembled["faq_html"] = ""
+            assembled["faq_schema"] = ""
+
+        assembled["references"] = article.get("references", {})
+        assembled["citations"] = article.get("citations", {})
+        assembled["validation"] = validation
+
+        return assembled
+
+    def info(self):
+        return {
+            "engine": "Article Writer Integration Engine",
+            "version": "4.5",
+            "status": "production",
+            "quality_enhancement": True,
+            "validation": True,
+            "metadata": True,
+            "seo": True,
+            "statistics": True,
+            "faq": True,
+            "references": True,
+            "citations": True
+        }

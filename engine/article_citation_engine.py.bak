@@ -1,0 +1,46 @@
+# -*- coding: utf-8 -*-
+
+
+class ArticleCitationEngine:
+    """
+    يضيف روابط الاستشهادات العلمية داخل المقال.
+    """
+
+    def __init__(self):
+        self.version = "1.0"
+
+    def build_citations(self, references):
+        citations = []
+
+        for index, ref in enumerate(references, start=1):
+            citations.append(
+                {
+                    "id": f"CIT-{index}",
+                    "organization": ref.get("organization", ""),
+                    "title": ref.get("title", ""),
+                    "url": ref.get("url", ""),
+                }
+            )
+
+        return citations
+
+    def inject(self, html, citations):
+        if not citations:
+            return html
+
+        citation_html = '<div id="citations-list">'
+
+        for c in citations:
+            citation_html += (
+                f'<span class="citation" '
+                f'data-id="{c["id"]}">'
+                f'[{c["organization"]}]'
+                f"</span> "
+            )
+
+        citation_html += "</div>"
+
+        return html + citation_html
+
+    def info(self):
+        return {"engine": "Article Citation Engine", "version": self.version}

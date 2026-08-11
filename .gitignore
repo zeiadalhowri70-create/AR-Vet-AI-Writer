@@ -1,0 +1,9 @@
+_project_history/
+backups/
+archive/
+production_archive/
+production_snapshots/
+.env*
+*.pickle
+*.txt
+*.json

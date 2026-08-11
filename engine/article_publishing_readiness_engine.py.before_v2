@@ -1,0 +1,58 @@
+# -*- coding: utf-8 -*-
+
+class ArticlePublishingReadinessEngine:
+    """
+    يتحقق من جاهزية المقال للنشر.
+    """
+
+    def __init__(self):
+        self.version = "1.0"
+
+    def check(self, article):
+        checks = {
+            "html": bool(article.get("html")),
+            "seo_meta": bool(article.get("seo_meta")),
+            "schema": bool(article.get("schema")),
+            "references": bool(article.get("references")),
+            "quality_score": bool(article.get("quality_score")),
+            "final_review": bool(article.get("final_review")),
+            "images": (
+                'article-image' in article.get("html", "")
+                or 'cover-image' in article.get("html", "")
+            ),
+        }
+
+        blocking_issues = [
+            key for key, value in checks.items()
+            if not value
+        ]
+
+        passed = sum(
+            1 for value in checks.values()
+            if value
+        )
+
+        total = len(checks)
+
+        score = int((passed / total) * 100)
+
+        ready = len(blocking_issues) == 0
+
+        return {
+            "ready": ready,
+            "score": score,
+            "checks": checks,
+            "blocking_issues": blocking_issues,
+            "status": (
+                "ready_to_publish"
+                if ready
+                else "needs_fix"
+            )
+        }
+
+    def info(self):
+        return {
+            "engine": "Article Publishing Readiness Engine",
+            "version": self.version,
+            "status": "production"
+        }
